@@ -1,0 +1,1 @@
+{"dependencies":{"bcryptjs":"^2.4.3","better-sqlite3":"^12.2.0","express":"^4.21.2","express-session":"^1.18.1"},"description":"剩菜盲盒 — 西雅图中餐馆剩菜盲盒双边市场（v1 验证版）","engines":{"node":">=18"},"main":"server.js","name":"shengcai-manghe","scripts":{"reset":"rm -f data/shengcai.db* && echo '数据库已清空，重启服务将重新生成示例数据'","start":"node server.js"},"version":"1.0.0"}
