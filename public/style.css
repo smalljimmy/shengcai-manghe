@@ -21,7 +21,8 @@ a { color: var(--pri); text-decoration: none; }
 .topbar { background: rgba(255,255,255,.92); backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 10; }
 .topbar .wrap { display: flex; align-items: center; justify-content: space-between; height: 56px; }
-.logo { font-weight: 800; font-size: 18px; color: var(--ink); letter-spacing: 2px; display: flex; align-items: center; gap: 8px; }
+.logo { font-family: "Noto Serif SC", "Songti SC", "STSong", serif; font-weight: 900; font-size: 20px; color: var(--ink); letter-spacing: 2px; display: flex; align-items: center; gap: 7px; flex-shrink: 0; white-space: nowrap; }
+.topbar nav { white-space: nowrap; }
 .logo-img { width: 32px; height: 32px; border-radius: 8px; }
 .logo i { font-style: normal; color: var(--mut); font-weight: 400; }
 .logo small { font-size: 10px; letter-spacing: 2px; color: var(--mut); font-weight: 600; }
@@ -36,7 +37,7 @@ a { color: var(--pri); text-decoration: none; }
   background: linear-gradient(100deg, rgba(10,7,4,.82) 0%, rgba(10,7,4,.45) 55%, rgba(10,7,4,.05) 100%); }
 .hero-inner { position: relative; z-index: 1; padding: 34px 24px; color: #fff; max-width: 78%; }
 .hero-kicker { font-size: 12px; letter-spacing: 3px; color: var(--gold); font-weight: 700; margin-bottom: 10px; }
-.hero h1 { margin: 0 0 10px; font-size: 27px; line-height: 1.4; font-weight: 800; letter-spacing: .5px; }
+.hero h1 { margin: 0 0 10px; font-size: 27px; line-height: 1.45; font-weight: 900; letter-spacing: 1px; font-family: "Noto Serif SC", "Songti SC", "STSong", serif; }
 .hero p { margin: 0 0 18px; font-size: 14px; color: rgba(255,255,255,.82); }
 .hero .btn { background: var(--pri); box-shadow: 0 6px 20px rgba(230,69,51,.4); }
 
