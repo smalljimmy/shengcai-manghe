@@ -22,6 +22,34 @@ app.use(session({
   cookie: { maxAge: 7 * 24 * 3600 * 1000 },
 }));
 
+// ---------- 访问统计 ----------
+// 只统计公开页面；IP 只存加盐哈希（不存原始 IP），按天聚合
+const crypto = require('crypto');
+const stmtPv = db.prepare(`INSERT INTO pv_daily(day, path, views) VALUES (?, ?, 1)
+  ON CONFLICT(day, path) DO UPDATE SET views = views + 1`);
+const stmtUv = db.prepare('INSERT OR IGNORE INTO uv_daily(day, ip_hash) VALUES (?, ?)');
+function trackedPath(p) {
+  if (p === '/') return '/';
+  if (/^\/box\/\d+$/.test(p)) return '/box/:id';
+  if (['/join', '/my', '/merchant', '/merchant/register'].includes(p)) return p;
+  return null;
+}
+app.use((req, res, next) => {
+  if (req.method === 'GET') {
+    const p = trackedPath(req.path);
+    if (p) {
+      try {
+        const ip = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
+        const hash = crypto.createHash('sha256')
+          .update((process.env.SESSION_SECRET || 'yuwei') + '|' + ip).digest('hex').slice(0, 24);
+        stmtPv.run(todayStr(), p);
+        stmtUv.run(todayStr(), hash);
+      } catch (e) { /* 统计失败不影响页面 */ }
+    }
+  }
+  next();
+});
+
 // ---------- 小工具 ----------
 function cleanPhone(s) { return String(s || '').replace(/\D/g, ''); }
 function validPhone(s) { const p = cleanPhone(s); return p.length >= 7 && p.length <= 15 ? p : null; }
@@ -306,7 +334,18 @@ app.get('/admin/dashboard', requireAdmin, (req, res) => {
     .map((b) => ({ ...b, live: live(b) }));
   const reservations = withDayDate(db.prepare(`SELECT r.*, b.title AS box_title, b.pickup_date FROM reservations r
     JOIN boxes b ON b.id = r.box_id ORDER BY r.id DESC LIMIT 100`).all());
-  res.send(v.adminDash(stats, perShop, restaurants, boxes, reservations));
+  const t = todayStr();
+  const pvSum = (day) => db.prepare('SELECT COALESCE(SUM(views),0) AS v FROM pv_daily WHERE day=?').get(day).v;
+  const uvCnt = (day) => db.prepare('SELECT COUNT(*) AS c FROM uv_daily WHERE day=?').get(day).c;
+  const traffic = {
+    todayPv: pvSum(t), todayUv: uvCnt(t),
+    yesterdayPv: db.prepare("SELECT COALESCE(SUM(views),0) AS v FROM pv_daily WHERE day=date(?, '-1 day')").get(t).v,
+    yesterdayUv: db.prepare("SELECT COUNT(*) AS c FROM uv_daily WHERE day=date(?, '-1 day')").get(t).c,
+    days: db.prepare('SELECT day, SUM(views) AS pv FROM pv_daily GROUP BY day ORDER BY day DESC LIMIT 7').all()
+      .map((d) => ({ ...d, uv: uvCnt(d.day) })),
+    topPaths: db.prepare("SELECT path, SUM(views) AS v FROM pv_daily WHERE day >= date(?, '-6 days') GROUP BY path ORDER BY v DESC").all(t),
+  };
+  res.send(v.adminDash(stats, perShop, restaurants, boxes, reservations, traffic));
 });
 app.post('/admin/restaurants/:id/toggle', requireAdmin, (req, res) => {
   const r = db.prepare('SELECT * FROM restaurants WHERE id = ?').get(req.params.id);
