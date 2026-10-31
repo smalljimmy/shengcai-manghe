@@ -121,6 +121,7 @@ a { color: var(--pri); text-decoration: none; }
 .foot { margin-top: 44px; padding: 20px 0 32px; color: var(--mut); font-size: 12px; text-align: center;
   border-top: 1px solid var(--line); }
 .foot .credits { font-size: 11px; color: #a89f93; }
+.foot .admin-link { font-size: 11px; color: #a89f93; text-decoration: none; }
 
 .badge { font-size: 12px; background: #fdecea; color: var(--pri-d); padding: 3px 10px;
   border-radius: 12px; font-weight: 700; white-space: nowrap; }

@@ -333,7 +333,13 @@ app.get('/admin/dashboard', requireAdmin, (req, res) => {
     LEFT JOIN reservations r ON r.box_id = b.id
     GROUP BY rt.id ORDER BY total DESC`).all()
     .map((s) => ({ ...s, gmv_cents: Math.round(s.gmv_cents) }));
-  const restaurants = db.prepare('SELECT * FROM restaurants ORDER BY id').all();
+  // 演示账号：种子数据里的两家演示店，不计入真实入驻数
+  const DEMO_PHONES = new Set(['4255550101', '4255550202']);
+  const isDemoShop = (r) => DEMO_PHONES.has(String(r.phone || '').replace(/\D/g, ''));
+  const restaurants = db.prepare('SELECT * FROM restaurants ORDER BY id').all()
+    .map((r) => ({ ...r, isDemo: isDemoShop(r) }));
+  stats.shops_demo = restaurants.filter((r) => r.isDemo).length;
+  stats.shops_real = restaurants.length - stats.shops_demo;
   const boxes = db.prepare(`SELECT b.*, r.name AS restaurant_name FROM boxes b
     JOIN restaurants r ON r.id = b.restaurant_id ORDER BY b.id DESC`).all()
     .map((b) => ({ ...b, live: live(b) }));
