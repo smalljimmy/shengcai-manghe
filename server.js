@@ -7,6 +7,7 @@ const bcrypt = require('bcryptjs');
 const path = require('path');
 const { initDb, todayStr, weekDate, WEEK_DAYS } = require('./lib/db');
 const v = require('./lib/views');
+const samples = require('./lib/samples');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -107,11 +108,13 @@ app.get('/', (req, res) => {
     WHERE r.status = 'active'
       AND (b.pickup_date = ? OR (b.box_type = 'weekly' AND ? BETWEEN b.pickup_date AND date(b.pickup_date, '+4 days')))
     ORDER BY b.pickup_start`).all(todayStr(), todayStr());
-  res.send(v.home(rows.filter((b) => live(b) === 'active')));
+  res.send(v.home(rows.filter((b) => live(b) === 'active'), samples.SAMPLES));
 });
 
-// 盲盒详情 + 预订表单
+// 盲盒详情 + 预订表单（演示样品先拦截：只展示，不可订）
 app.get('/box/:id', (req, res) => {
+  const sample = samples.findSample(req.params.id);
+  if (sample) return res.send(v.sampleDetail(sample));
   const b = getBox(req.params.id);
   if (!b || b.rstatus !== 'active') return res.status(404).send(v.errorPage('盲盒不存在'));
   const st = live(b);
@@ -120,7 +123,9 @@ app.get('/box/:id', (req, res) => {
 });
 
 // 提交预订 → 取餐码（单次 1 个码；一周套餐一次生成 5 个码）
+// 演示样品服务端硬拦截：任何字段组合都直接返回已售罄页，绝不写 reservations 表
 app.post('/reserve', (req, res) => {
+  if (samples.findSample(req.body.box_id)) return res.send(v.sampleSoldOut());
   const name = String(req.body.buyer_name || '').trim().slice(0, 30);
   const phone = validPhone(req.body.buyer_phone);
   const b = getBox(req.body.box_id);

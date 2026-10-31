@@ -110,6 +110,7 @@ a { color: var(--pri); text-decoration: none; }
 .st.picked_up { background: #e8eefc; color: #2b4fc4; }
 .st.cancelled, .st.disabled { background: #f1ece4; color: var(--mut); }
 .st.soldout, .st.expired { background: #fdecea; color: #a93226; }
+.menu-item.soldout .menu-thumb { filter: grayscale(55%); }
 
 .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 14px 0; }
 .stat { background: var(--card); border-radius: 12px; padding: 14px 6px; text-align: center;
